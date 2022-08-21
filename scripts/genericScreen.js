@@ -1,3 +1,5 @@
+import { showSummary } from './summaryScreen.js';
+
 H5P.BranchingScenario.GenericScreen = (function () {
 
   /**
@@ -55,6 +57,9 @@ H5P.BranchingScenario.GenericScreen = (function () {
     const navButton = document.createElement('button');
     navButton.classList.add(screenData.isStartScreen ? 'h5p-start-button' : 'h5p-end-button');
     navButton.classList.add('transition');
+
+    // check and show view summary button
+    showSummary(self, screenData, contentDiv);
 
     navButton.onclick = function () {
       screenData.isStartScreen ? self.parent.trigger('started') : self.parent.trigger('restarted');

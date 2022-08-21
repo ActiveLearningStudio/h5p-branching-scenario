@@ -718,6 +718,9 @@ H5P.BranchingScenario.LibraryScreen = (function () {
 
     // Remove any fullscreen buttons
     this.disableFullscreen(instance);
+
+    instance.metadata = content.metadata;
+    this.parent.instances.push(instance);
   };
 
   /**

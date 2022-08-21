@@ -7,7 +7,8 @@ module.exports = {
       './scripts/genericScreen.js',
       './scripts/libraryScreen.js',
       './scripts/libraryScreenOverlay.js',
-      './scripts/scoring.js'
+      './scripts/scoring.js',
+      './scripts/summaryScreen.js'
     ]
   },
   output: {

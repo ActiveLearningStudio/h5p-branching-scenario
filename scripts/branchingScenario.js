@@ -16,6 +16,7 @@ H5P.BranchingScenario = function (params, contentId) {
   self.backwardsAllowedFlags = [];
   self.proceedButtonInProgress = false;
   self.isReverseTransition = false;
+  self.instances = [];
 
   /**
    * Extend an array just like JQuery's extend.
