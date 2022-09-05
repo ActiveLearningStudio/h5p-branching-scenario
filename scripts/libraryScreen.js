@@ -687,7 +687,11 @@ H5P.BranchingScenario.LibraryScreen = (function () {
     this.disableFullscreen(instance);
 
     instance.metadata = content.metadata;
-    this.parent.instances.push(instance);
+
+    const subContents = this.parent.instances.map(element => element.subContentId);
+    if(subContents.indexOf(instance.subContentId) === -1) {
+      this.parent.instances.push(instance);
+    }
   };
 
   /**
