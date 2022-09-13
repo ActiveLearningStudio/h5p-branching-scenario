@@ -22,8 +22,7 @@ var readOnlyActivities = [
   'H5P.PhetInteractiveSimulation',
   'H5P.DocumentationTool',
   'H5P.AdvancedText',
-  'H5P.DocumentsUpload',
-  'H5P.BranchingQuestion'
+  'H5P.DocumentsUpload'
 ];
 
 /**
@@ -80,7 +79,8 @@ var isShowSummary = function (instances) {
   for (const inst of instances) {
     const machineName = inst.libraryInfo.machineName;
     if (readOnlyActivities.includes(machineName)
-        || (['H5P.InteractiveVideo', 'H5P.CoursePresentation'].includes(machineName) && !isTask(inst))) {
+        || (['H5P.InteractiveVideo', 'H5P.CoursePresentation'].includes(machineName) && !isTask(inst))
+    ) {
       continue;
     }
     hasNonReadOnlyActivities = true;
@@ -88,11 +88,17 @@ var isShowSummary = function (instances) {
   return hasNonReadOnlyActivities;
 };
 
+var isScoringEnabled = function(that) {
+  return that.scoring && that.scoring.shouldShowScore()
+};
 
-var createSummary = function (that, instances) {
+var createSummary = function (parent, instances) {
+  console.log(parent);
   let tableContent = '<tbody>';
   let i = 0;
-  for (const inst of instances) {
+  for (const score of parent.scoring.scores) {
+    const subContentId = score.libraryParams.type.subContentId;
+    const inst = instances.filter(i => i.subContentId === subContentId)[0];
     // Do not show read only activities in summary
     const machineName = inst.libraryInfo.machineName;
     if (readOnlyActivities.includes(machineName)
@@ -100,16 +106,9 @@ var createSummary = function (that, instances) {
       i++;
       continue;
     }
-
-    var custScore = 0;
-    var custMaxScore = 0;
-    if (typeof inst.getScore != "undefined") {
-      custScore = inst.getScore();
-      custMaxScore = inst.getMaxScore();
-    }
     tableContent += '<tr>';
-    tableContent += '<td>' + inst.metadata.title + '</td>';
-    tableContent += '<td style="text-align:right;">' + custScore + '/' + custMaxScore + '</td>';
+    tableContent += '<td>' + score.libraryParams.type.metadata.title + '</td>';
+    tableContent += '<td style="text-align:right;">' + score.score + '/' + score.maxScore + '</td>';
     tableContent += '</tr>';
     i++;
   }
@@ -121,16 +120,17 @@ var createSummary = function (that, instances) {
 
 var showSummary = function showSummary(that, screenData, contentDiv) {
 
-  if (!screenData.isStartScreen && typeof that.parent.parent == "undefined" && isShowSummary(that.parent.instances)) {
+  if (!screenData.isStartScreen && typeof that.parent.parent == "undefined" && isScoringEnabled(that.parent) && isShowSummary(that.parent.instances)) {
     const viewSummaryButton = document.createElement('button');
     viewSummaryButton.classList.add('h5p-view-summary-button');
 
     const instances = that.parent.instances;
+    const parent = that.parent;
     viewSummaryButton.onclick = function () {
       H5P.jQuery('.submit-answers').remove();
       var confirmationDialog = new H5P.ConfirmationDialog({
         headerText: 'Branching Scenario Summary',
-        dialogText: createSummary(that, instances),
+        dialogText: createSummary(parent, instances),
         cancelText: 'Cancel',
         confirmText: "Submit Answers"
       });

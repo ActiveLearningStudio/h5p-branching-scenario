@@ -14,7 +14,8 @@ H5P.BranchingScenario.Scoring = (function () {
    */
   function Scoring(params) {
     const self = this;
-    let scores = [];
+    self.scores = [];
+    let scores = self.scores;
     let visitedIndex = 0;
 
     /**
@@ -320,7 +321,8 @@ H5P.BranchingScenario.Scoring = (function () {
           visitedIndex: visitedIndex,
           id: currentId,
           score: currentLibraryScore,
-          maxScore: currentLibraryMaxScore
+          maxScore: currentLibraryMaxScore,
+          libraryParams: libraryParams
         });
       }
     };
