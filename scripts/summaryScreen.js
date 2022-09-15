@@ -92,26 +92,31 @@ var isScoringEnabled = function(that) {
   return that.scoring && that.scoring.shouldShowScore()
 };
 
-var createSummary = function (parent, instances) {
+var createSummary = function (parent, instances, screenData) {
   console.log(parent);
   let tableContent = '<tbody>';
-  let i = 0;
-  for (const score of parent.scoring.scores) {
-    const subContentId = score.libraryParams.type.subContentId;
-    const inst = instances.filter(i => i.subContentId === subContentId)[0];
-    // Do not show read only activities in summary
-    const machineName = inst.libraryInfo.machineName;
-    if (readOnlyActivities.includes(machineName)
-        || (['H5P.InteractiveVideo', 'H5P.CoursePresentation'].includes(machineName) && !isTask(inst))) {
-      i++;
-      continue;
-    }
+  if (parent.scoring.isStaticScoring()) {
     tableContent += '<tr>';
-    tableContent += '<td>' + score.libraryParams.type.metadata.title + '</td>';
-    tableContent += '<td style="text-align:right;">' + score.score + '/' + score.maxScore + '</td>';
+    tableContent += '<td>' + screenData.endScreenText + '</td>';
+    tableContent += '<td style="text-align:right;">' + screenData.score + '/' +  screenData.maxScore + '</td>';
     tableContent += '</tr>';
-    i++;
+  } else if (parent.scoring.isDynamicScoring()) {
+    for (const score of parent.scoring.scores) {
+      const subContentId = score.libraryParams.type.subContentId;
+      const inst = instances.filter(i => i.subContentId === subContentId)[0];
+      // Do not show read only activities in summary
+      const machineName = inst.libraryInfo.machineName;
+      if (readOnlyActivities.includes(machineName)
+          || (['H5P.InteractiveVideo', 'H5P.CoursePresentation'].includes(machineName) && !isTask(inst))) {
+        continue;
+      }
+      tableContent += '<tr>';
+      tableContent += '<td>' + score.libraryParams.type.metadata.title + '</td>';
+      tableContent += '<td style="text-align:right;">' + score.score + '/' + score.maxScore + '</td>';
+      tableContent += '</tr>';
+    }
   }
+
   tableContent += '</tbody>';
 
   return '<div class="custom-summary-section"><div class="h5p-summary-table-pages"><table class="h5p-score-table-custom" style="min-height:100px;width:100%;"><thead><tr><th>Content</th><th style="text-align:right;">Score/Total</th></tr></thead>' + tableContent + '</table></div></div>';
@@ -130,7 +135,7 @@ var showSummary = function showSummary(that, screenData, contentDiv) {
       H5P.jQuery('.submit-answers').remove();
       var confirmationDialog = new H5P.ConfirmationDialog({
         headerText: 'Branching Scenario Summary',
-        dialogText: createSummary(parent, instances),
+        dialogText: createSummary(parent, instances, screenData),
         cancelText: 'Cancel',
         confirmText: "Submit Answers"
       });
@@ -138,12 +143,9 @@ var showSummary = function showSummary(that, screenData, contentDiv) {
       confirmationDialog.on('confirmed', function () {
         var rawwa = 0;
         var maxwa = 0;
-
-        for (const inst of instances) {
-          if(typeof inst != "undefined"){
-            rawwa += inst.getScore();
-            maxwa += inst.getMaxScore();
-          }
+        for (const score of parent.scoring.scores) {
+          rawwa += score.score ;
+          maxwa += score.maxScore;
         }
 
         if(maxwa === 0) {
@@ -169,6 +171,4 @@ var showSummary = function showSummary(that, screenData, contentDiv) {
   }
 
 };
-
-
 exports.showSummary = showSummary;

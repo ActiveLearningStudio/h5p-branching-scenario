@@ -352,13 +352,21 @@ H5P.BranchingScenario.Scoring = (function () {
     };
 
     /**
+     * Check if scoring is static
+     *
+     * @returns {boolean} True if dynamic scoring
+     */
+    this.isStaticScoring = function () {
+      return params.scoringOptionGroup.scoringOption === SCORE_TYPES.STATIC_SCORE
+    };
+
+    /**
      * Determines if score types are configured to show scores
      *
      * @returns {boolean} True if score should show
      */
     this.shouldShowScore = function () {
-      return params.scoringOptionGroup.scoringOption === SCORE_TYPES.STATIC_SCORE
-        || this.isDynamicScoring();
+      return this.isStaticScoring() || this.isDynamicScoring();
     };
   }
 

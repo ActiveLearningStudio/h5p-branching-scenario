@@ -97,6 +97,16 @@ H5P.BranchingScenario = function (params, contentId) {
   self.scoring = new H5P.BranchingScenario.Scoring(params);
 
   /**
+   * XAPI based on scoring option
+   */
+  H5P.externalDispatcher.on('xAPI', function (event) {
+    if(!self.scoring.shouldShowScore()) {
+      event.ignoreLrs = true;
+    }
+    console.log(event);
+  });
+
+  /**
    * Create a start screen object
    *
    * @param  {Object} startscreendata Object containing data needed to build a start screen
@@ -150,6 +160,7 @@ H5P.BranchingScenario = function (params, contentId) {
       score: self.scoring.getScore(endScreenData.endScreenScore),
       maxScore: self.scoring.getMaxScore(),
       showScore: self.scoring.shouldShowScore(),
+      endScreenText: endScreenData.endScreenText
     });
 
     endScreen.on('toggleFullScreen', () => {
@@ -329,7 +340,8 @@ H5P.BranchingScenario = function (params, contentId) {
           endScreenTitle: e.data.feedback.title || '',
           endScreenSubtitle: e.data.feedback.subtitle || '',
           endScreenImage: e.data.feedback.image,
-          endScreenScore: e.data.feedback.endScreenScore
+          endScreenScore: e.data.feedback.endScreenScore,
+          endScreenText: e.data.text
         });
         self.$container.append(endScreen.getElement());
         self.currentEndScreen = endScreen;
@@ -692,6 +704,7 @@ H5P.BranchingScenario = function (params, contentId) {
       children: self.xAPIDataCollector
     };
   };
+
 };
 
 H5P.BranchingScenario.prototype = Object.create(H5P.EventDispatcher.prototype);
