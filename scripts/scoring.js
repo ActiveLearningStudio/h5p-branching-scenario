@@ -354,10 +354,19 @@ H5P.BranchingScenario.Scoring = (function () {
     /**
      * Check if scoring is static
      *
-     * @returns {boolean} True if dynamic scoring
+     * @returns {boolean} True if static scoring
      */
     this.isStaticScoring = function () {
       return params.scoringOptionGroup.scoringOption === SCORE_TYPES.STATIC_SCORE
+    };
+
+    /**
+     * Check if scoring is no scoring
+     *
+     * @returns {boolean} True if no scoring
+     */
+    this.isNoScoring = function () {
+      return params.scoringOptionGroup.scoringOption === SCORE_TYPES.NO_SCORE
     };
 
     /**

@@ -100,10 +100,12 @@ H5P.BranchingScenario = function (params, contentId) {
    * XAPI based on scoring option
    */
   H5P.externalDispatcher.on('xAPI', function (event) {
-    if(!self.scoring.shouldShowScore()) {
-      event.ignoreLrs = true;
+    var verb = event.getVerb();
+    if (verb === 'answered' &&
+        (self.scoring.isStaticScoring() || self.scoring.isNoScoring() || (self.scoring.isDynamicScoring() && !params.scoringOptionGroup.includeInteractionsScores))
+    ) {
+      event.ignoreStatement = true;
     }
-    console.log(event);
   });
 
   /**

@@ -143,24 +143,29 @@ var showSummary = function showSummary(that, screenData, contentDiv) {
       confirmationDialog.on('confirmed', function () {
         var rawwa = 0;
         var maxwa = 0;
-        for (const score of parent.scoring.scores) {
-          rawwa += score.score ;
-          maxwa += score.maxScore;
+        if (parent.scoring.isStaticScoring()) {
+          rawwa += screenData.score;
+          maxwa += screenData.maxScore;
+
+          // for static scoring trigger answered
+          var xAPIEvent = parent.createXAPIEventTemplate('answered');
+          xAPIEvent.setScoredResult(rawwa, maxwa, parent);
+          xAPIEvent.data.statement.result.response = screenData.endScreenText;
+          parent.trigger(xAPIEvent);
+
+        } else if (parent.scoring.isDynamicScoring()) {
+          for (const score of parent.scoring.scores) {
+            rawwa += score.score;
+            maxwa += score.maxScore;
+          }
         }
 
-        if(maxwa === 0) {
+        if (maxwa === 0) {
           maxwa += 1;
         }
-        that.triggerXAPIScored(rawwa, maxwa, 'submitted-curriki');
+        parent.triggerXAPIScored(rawwa, maxwa, 'submitted-curriki');
       });
 
-      // if editor then show confirm only inside editor window
-      /*const editor = document.querySelector('.h5peditor');
-      if(editor) {
-        confirmationDialog.appendTo(document.body);
-      } else {
-        confirmationDialog.appendTo(that.parent.document.body);
-      }*/
       confirmationDialog.appendTo(document.body);
       confirmationDialog.show();
     };
