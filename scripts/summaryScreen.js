@@ -78,7 +78,7 @@ var isTask = function (instance) {
 var isShowSummary = function (parent) {
   let hasNonReadOnlyActivities = false;
   for (const score of parent.scoring.scores) {
-    const subContentId = score.libraryParams.type.subContentId;
+    const subContentId = score.libraryParams.subContentId;
     const inst = parent.instances.filter(i => i.subContentId === subContentId)[0];
     // Do not show read only activities in summary if no score set
     const machineName = inst.libraryInfo.machineName;
@@ -105,7 +105,7 @@ var createSummary = function (parent, instances, screenData) {
     tableContent += '</tr>';
   } else if (parent.scoring.isDynamicScoring()) {
     for (const score of parent.scoring.scores) {
-      const subContentId = score.libraryParams.type.subContentId;
+      const subContentId = score.libraryParams.subContentId;
       const inst = instances.filter(i => i.subContentId === subContentId)[0];
       // Do not show read only activities in summary if no score set
       const machineName = inst.libraryInfo.machineName;
@@ -115,7 +115,7 @@ var createSummary = function (parent, instances, screenData) {
         continue;
       }
       tableContent += '<tr>';
-      tableContent += '<td>' + score.libraryParams.type.metadata.title + '</td>';
+      tableContent += '<td>' + score.libraryParams.title + '</td>';
       tableContent += '<td style="text-align:right;">' + score.score + '/' + score.maxScore + '</td>';
       tableContent += '</tr>';
     }
@@ -219,7 +219,7 @@ var showSummary = function showSummary(that, screenData, contentDiv) {
             rawwa += score.score;
             maxwa += score.maxScore;
             // trigger static or scenario score
-            const subContentId = score.libraryParams.type.subContentId;
+            const subContentId = score.libraryParams.subContentId;
             const inst = instances.filter(i => i.subContentId === subContentId)[0];
             const machineName = inst.libraryInfo.machineName;
             if (machineName === 'H5P.BranchingQuestion') {

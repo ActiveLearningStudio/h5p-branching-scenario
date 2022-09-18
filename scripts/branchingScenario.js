@@ -1,6 +1,6 @@
 H5P = H5P || {};
 
-H5P.BranchingScenario = function (params, contentId) {
+H5P.BranchingScenario = function (params, contentId, extras) {
   const self = this;
 
   H5P.EventDispatcher.call(self);
@@ -94,8 +94,13 @@ H5P.BranchingScenario = function (params, contentId) {
   });
 
   self.params = params;
-  self.scoring = new H5P.BranchingScenario.Scoring(params);
-
+  self.scoring = new H5P.BranchingScenario.Scoring(params, extras.previousState);
+  if (extras) {
+    self.previousState = extras.previousState;
+    if(extras.previousState.hasOwnProperty("progress")) {
+      self.currentId = extras.previousState.progress;
+    }
+  }
   /**
    * XAPI based on scoring option
    */
@@ -222,6 +227,37 @@ H5P.BranchingScenario = function (params, contentId) {
       self.userPath.push(0);
     }
     self.currentId = 0;
+  });
+
+  /**
+   * Handle the start of the branching scenario
+   */
+  self.on('navigateNode', function (e) {
+    const id = e.data.id;
+    const node = this.params.content[id];
+
+    // Disable back button if not allowed
+    if (self.canEnableBackButton(id) === false) {
+      self.disableBackButton();
+    }
+    else {
+      self.enableBackButton();
+    }
+
+    if (node && node.type && node.type.library && node.type.library.split(' ')[0] === 'H5P.BranchingQuestion') {
+      // First node is Branching Question, no sliding, just trigger BQ overlay
+      self.trigger('navigated', {
+        nextContentId: id
+      });
+    }
+    else {
+      // First node is info content
+      self.startScreen.hide();
+      self.libraryScreen.show();
+      self.triggerXAPI('progressed');
+      self.userPath.push(id);
+    }
+    self.currentId = id;
   });
 
   /**
@@ -661,14 +697,22 @@ H5P.BranchingScenario = function (params, contentId) {
 
     self.startScreen = createStartScreen(params.startScreen, true);
     self.$container.append(self.startScreen.getElement());
-    self.currentId = -1;
+    if (self.currentId === -1) {
+      // self.currentId = -1;
+      // Note: the first library must always have an id of 0
+      self.libraryScreen = new H5P.BranchingScenario.LibraryScreen(self, params.startScreen.startScreenTitle, self.getLibrary(0));
+    } else {
+      self.libraryScreen = new H5P.BranchingScenario.LibraryScreen(self, params.startScreen.startScreenTitle, self.getLibrary(self.currentId));
+      self.trigger('navigateNode', {
+        id: self.currentId
+      });
 
-    // Note: the first library must always have an id of 0
-    self.libraryScreen = new H5P.BranchingScenario.LibraryScreen(self, params.startScreen.startScreenTitle, self.getLibrary(0));
+    }
     self.libraryScreen.on('toggleFullScreen', () => {
       self.toggleFullScreen();
     });
     self.$container.append(self.libraryScreen.getElement());
+
 
     params.endScreens.forEach(endScreen => {
       self.endScreens[endScreen.contentId] = createEndScreen(endScreen);
@@ -708,6 +752,28 @@ H5P.BranchingScenario = function (params, contentId) {
       statement: xAPIEvent.data.statement,
       children: self.xAPIDataCollector
     };
+  };
+
+  /**
+   * Returns the complete state of branching and its sub-content
+   *
+   * @returns {Object} current state
+   */
+  self.getCurrentState = function () {
+
+    var state = {
+      answers: [],
+      progress: self.currentId,
+      scores: []
+    };
+    self.instances.forEach(function (instance) {
+      if (instance.getCurrentState instanceof Function || typeof instance.getCurrentState === 'function') {
+        const content = self.params.content.filter(x => x.type.subContentId === instance.subContentId)[0];
+        state.answers[content.contentId] = instance.getCurrentState();
+      }
+    });
+    state.scores = self.scoring.scores;
+    return state;
   };
 
 };
