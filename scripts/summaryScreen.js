@@ -22,7 +22,8 @@ var readOnlyActivities = [
   'H5P.PhetInteractiveSimulation',
   'H5P.DocumentationTool',
   'H5P.AdvancedText',
-  'H5P.DocumentsUpload'
+  'H5P.DocumentsUpload',
+  'H5P.BranchingQuestion'
 ];
 
 /**
@@ -74,12 +75,15 @@ var isTask = function (instance) {
  * if instance contain scorable or open response then return true
  * @returns {boolean}
  */
-var isShowSummary = function (instances) {
+var isShowSummary = function (parent) {
   let hasNonReadOnlyActivities = false;
-  for (const inst of instances) {
+  for (const score of parent.scoring.scores) {
+    const subContentId = score.libraryParams.type.subContentId;
+    const inst = parent.instances.filter(i => i.subContentId === subContentId)[0];
+    // Do not show read only activities in summary if no score set
     const machineName = inst.libraryInfo.machineName;
-    if (readOnlyActivities.includes(machineName)
-        || (['H5P.InteractiveVideo', 'H5P.CoursePresentation'].includes(machineName) && !isTask(inst))
+    if ((score.score === 0 && score.maxScore === 0) &&
+        (readOnlyActivities.includes(machineName) || (['H5P.InteractiveVideo', 'H5P.CoursePresentation'].includes(machineName) && !isTask(inst)))
     ) {
       continue;
     }
@@ -93,7 +97,6 @@ var isScoringEnabled = function(that) {
 };
 
 var createSummary = function (parent, instances, screenData) {
-  console.log(parent);
   let tableContent = '<tbody>';
   if (parent.scoring.isStaticScoring()) {
     tableContent += '<tr>';
@@ -104,11 +107,11 @@ var createSummary = function (parent, instances, screenData) {
     for (const score of parent.scoring.scores) {
       const subContentId = score.libraryParams.type.subContentId;
       const inst = instances.filter(i => i.subContentId === subContentId)[0];
-      // Do not show read only activities in summary
+      // Do not show read only activities in summary if no score set
       const machineName = inst.libraryInfo.machineName;
-      if (readOnlyActivities.includes(machineName)
-          || (score.score === 0 &&  score.maxScore === 0)
-          || (['H5P.InteractiveVideo', 'H5P.CoursePresentation'].includes(machineName) && !isTask(inst))) {
+      if ((score.score === 0 &&  score.maxScore === 0) &&
+          (readOnlyActivities.includes(machineName) || (['H5P.InteractiveVideo', 'H5P.CoursePresentation'].includes(machineName) && !isTask(inst)))
+      ) {
         continue;
       }
       tableContent += '<tr>';
@@ -183,7 +186,7 @@ function handleOtherLibrariesXAPIAnswered(parent, inst, score) {
 
 var showSummary = function showSummary(that, screenData, contentDiv) {
 
-  if (!screenData.isStartScreen && typeof that.parent.parent == "undefined" && isScoringEnabled(that.parent) && isShowSummary(that.parent.instances)) {
+  if (!screenData.isStartScreen && typeof that.parent.parent == "undefined" && isScoringEnabled(that.parent) && isShowSummary(that.parent)) {
     const viewSummaryButton = document.createElement('button');
     viewSummaryButton.classList.add('h5p-view-summary-button');
 
