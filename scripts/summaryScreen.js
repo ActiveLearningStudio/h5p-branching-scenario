@@ -107,6 +107,7 @@ var createSummary = function (parent, instances, screenData) {
       // Do not show read only activities in summary
       const machineName = inst.libraryInfo.machineName;
       if (readOnlyActivities.includes(machineName)
+          || (score.score === 0 &&  score.maxScore === 0)
           || (['H5P.InteractiveVideo', 'H5P.CoursePresentation'].includes(machineName) && !isTask(inst))) {
         continue;
       }
@@ -122,6 +123,63 @@ var createSummary = function (parent, instances, screenData) {
   return '<div class="custom-summary-section"><div class="h5p-summary-table-pages"><table class="h5p-score-table-custom" style="min-height:100px;width:100%;"><thead><tr><th>Content</th><th style="text-align:right;">Score/Total</th></tr></thead>' + tableContent + '</table></div></div>';
 };
 
+/**
+ * Trigger XAPI answered statement for scenarios and static end screens
+ * @param score
+ * @param maxScore
+ * @param response
+ * @param instance
+ */
+function triggerAnswered(score, maxScore, response, instance) {
+  var xAPIEvent = instance.createXAPIEventTemplate('answered');
+  xAPIEvent.setScoredResult(score, maxScore, instance);
+  xAPIEvent.data.statement.result.response = response;
+  // for logging xapi and not to ignore answered statement
+  xAPIEvent.shouldLogStaticScore = true;
+  instance.trigger(xAPIEvent);
+}
+
+/**
+ * Handle Branching question XAPI answered
+ * @param inst
+ * @param score
+ */
+function handleBranchingQuestionXAPIAnswered(inst, score) {
+  var xAPIEvent = inst.createXAPIEventTemplate('answered');
+  xAPIEvent.data.statement = inst.getXAPIData().statement;
+  xAPIEvent.data.statement.result.score = {
+    'min': 0,
+    'max': score.maxScore,
+    'raw': score.score
+  };
+  if (score.maxScore > 0) {
+    xAPIEvent.data.statement.result.score.scaled = Math.round(score.score / score.maxScore * 10000) / 10000;
+  }
+  // for logging xapi and not to ignore answered statement
+  xAPIEvent.shouldLogStaticScore = true;
+  inst.trigger(xAPIEvent);
+}
+
+/**
+ * handle Other Libraries XAPI Answered
+ * @param parent
+ * @param inst
+ * @param score
+ */
+function handleOtherLibrariesXAPIAnswered(parent, inst, score) {
+  let scenarioScore = score.score;
+  let scenarioMaxScore = score.maxScore;
+  // exclude interaction scores
+  if(parent.params.scoringOptionGroup.includeInteractionsScores) {
+    if(inst.getScore !== "undefined") {
+      scenarioScore -= inst.getScore();
+    }
+    if(inst.getMaxScore !== "undefined") {
+      scenarioMaxScore -= inst.getMaxScore();
+    }
+  }
+  triggerAnswered(scenarioScore, scenarioMaxScore, 'Scenario Score', inst);
+}
 
 var showSummary = function showSummary(that, screenData, contentDiv) {
 
@@ -148,15 +206,24 @@ var showSummary = function showSummary(that, screenData, contentDiv) {
           maxwa += screenData.maxScore;
 
           // for static scoring trigger answered
-          var xAPIEvent = parent.createXAPIEventTemplate('answered');
-          xAPIEvent.setScoredResult(rawwa, maxwa, parent);
-          xAPIEvent.data.statement.result.response = screenData.endScreenText;
-          parent.trigger(xAPIEvent);
+          triggerAnswered(rawwa, maxwa, screenData.endScreenText, parent);
 
         } else if (parent.scoring.isDynamicScoring()) {
           for (const score of parent.scoring.scores) {
+            if (score.score === 0 && score.maxScore === 0) {
+              continue;
+            }
             rawwa += score.score;
             maxwa += score.maxScore;
+            // trigger static or scenario score
+            const subContentId = score.libraryParams.type.subContentId;
+            const inst = instances.filter(i => i.subContentId === subContentId)[0];
+            const machineName = inst.libraryInfo.machineName;
+            if (machineName === 'H5P.BranchingQuestion') {
+              handleBranchingQuestionXAPIAnswered(inst, score);
+            } else {
+              handleOtherLibrariesXAPIAnswered(parent, inst, score);
+            }
           }
         }
 

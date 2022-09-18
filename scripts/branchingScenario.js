@@ -102,7 +102,10 @@ H5P.BranchingScenario = function (params, contentId) {
   H5P.externalDispatcher.on('xAPI', function (event) {
     var verb = event.getVerb();
     if (verb === 'answered' &&
-        (self.scoring.isStaticScoring() || self.scoring.isNoScoring() || (self.scoring.isDynamicScoring() && !params.scoringOptionGroup.includeInteractionsScores))
+        ( self.scoring.isNoScoring()
+          || (self.scoring.isStaticScoring() && !event.shouldLogStaticScore)
+          || (self.scoring.isDynamicScoring() && !event.shouldLogStaticScore && !params.scoringOptionGroup.includeInteractionsScores)
+        )
     ) {
       event.ignoreStatement = true;
     }

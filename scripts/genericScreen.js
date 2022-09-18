@@ -214,6 +214,7 @@ H5P.BranchingScenario.GenericScreen = (function () {
     resultContainer.appendChild(scoreText);
     resultContainer.appendChild(scoreCircle);
     wrapper.appendChild(resultContainer);
+    wrapper.style.display = 'none';
     return wrapper;
   };
 
