@@ -395,7 +395,11 @@ H5P.BranchingScenario = function (params, contentId, extras) {
       self.startScreen.hide();
       self.libraryScreen.hide(true);
       self.currentEndScreen.show();
-      self.triggerXAPICompleted(self.scoring.getScore(self.currentEndScreen.getScore()), self.scoring.getMaxScore());
+      if (self.scoring.isNoScoring()) {
+        self.triggerXAPICompleted(undefined, undefined);
+      } else {
+        self.triggerXAPICompleted(self.scoring.getScore(self.currentEndScreen.getScore()), self.scoring.getMaxScore());
+      }
     }
     else {
       self.libraryScreen.showNextLibrary(nextLibrary, e.data.reverse);

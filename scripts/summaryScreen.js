@@ -174,10 +174,10 @@ function handleOtherLibrariesXAPIAnswered(parent, inst, score) {
   let scenarioMaxScore = score.maxScore;
   // exclude interaction scores
   if(parent.params.scoringOptionGroup.includeInteractionsScores) {
-    if(inst.getScore !== "undefined") {
+    if(typeof inst.getScore !== "undefined") {
       scenarioScore -= inst.getScore();
     }
-    if(inst.getMaxScore !== "undefined") {
+    if(typeof inst.getMaxScore !== "undefined") {
       scenarioMaxScore -= inst.getMaxScore();
     }
   }
