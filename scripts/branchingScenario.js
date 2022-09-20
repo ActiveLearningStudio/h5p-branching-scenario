@@ -706,11 +706,16 @@ H5P.BranchingScenario = function (params, contentId, extras) {
       // Note: the first library must always have an id of 0
       self.libraryScreen = new H5P.BranchingScenario.LibraryScreen(self, params.startScreen.startScreenTitle, self.getLibrary(0));
     } else {
+      for (const score of self.scoring.scores) {
+        if (self.currentId !== score.id) {
+          // just create screens
+          new H5P.BranchingScenario.LibraryScreen(self, params.startScreen.startScreenTitle, self.getLibrary(score.id));
+        }
+      }
       self.libraryScreen = new H5P.BranchingScenario.LibraryScreen(self, params.startScreen.startScreenTitle, self.getLibrary(self.currentId));
       self.trigger('navigateNode', {
         id: self.currentId
       });
-
     }
     self.libraryScreen.on('toggleFullScreen', () => {
       self.toggleFullScreen();
@@ -768,7 +773,7 @@ H5P.BranchingScenario = function (params, contentId, extras) {
     var state = {
       answers: [],
       progress: self.currentId,
-      scores: []
+      scores: [],
     };
     self.instances.forEach(function (instance) {
       if (instance.getCurrentState instanceof Function || typeof instance.getCurrentState === 'function') {
