@@ -95,7 +95,7 @@ H5P.BranchingScenario = function (params, contentId, extras) {
 
   self.params = params;
   self.scoring = new H5P.BranchingScenario.Scoring(params, extras.previousState);
-  if (extras) {
+  if (extras && extras.previousState) {
     self.previousState = extras.previousState;
     if(extras.previousState.hasOwnProperty("progress")) {
       self.currentId = extras.previousState.progress;
