@@ -395,6 +395,8 @@ H5P.BranchingScenario = function (params, contentId, extras) {
       self.startScreen.hide();
       self.libraryScreen.hide(true);
       self.currentEndScreen.show();
+      // show summary if applicable
+      self.currentEndScreen.showSummaryButton();
       if (self.scoring.isNoScoring()) {
         self.triggerXAPICompleted(undefined, undefined);
       } else {
