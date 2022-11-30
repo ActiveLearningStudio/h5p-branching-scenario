@@ -10,7 +10,8 @@ module.exports = {
       './genericScreen.js',
       './libraryScreen.js',
       './libraryScreenOverlay.js',
-      './scoring.js'
+      './scoring.js',
+      './summaryScreen.js'
     ]
   },
   devtool: (nodeEnv == 'development') ? 'eval-source-map' : false,

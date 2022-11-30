@@ -12,9 +12,13 @@ H5P.BranchingScenario.Scoring = (function () {
    * @param params
    * @constructor
    */
-  function Scoring(params) {
+  function Scoring(params, previousState) {
     const self = this;
-    let scores = [];
+    self.scores = [];
+    if(previousState && previousState.scores) {
+      self.scores = previousState.scores;
+    }
+    let scores = self.scores;
     let visitedIndex = 0;
 
     /**
@@ -320,7 +324,11 @@ H5P.BranchingScenario.Scoring = (function () {
           visitedIndex: visitedIndex,
           id: currentId,
           score: currentLibraryScore,
-          maxScore: currentLibraryMaxScore
+          maxScore: currentLibraryMaxScore,
+          libraryParams: {
+            'subContentId': libraryParams.type.subContentId,
+            'title': libraryParams.type.metadata.title
+          }
         });
       }
     };
@@ -350,13 +358,30 @@ H5P.BranchingScenario.Scoring = (function () {
     };
 
     /**
+     * Check if scoring is static
+     *
+     * @returns {boolean} True if static scoring
+     */
+    this.isStaticScoring = function () {
+      return params.scoringOptionGroup.scoringOption === SCORE_TYPES.STATIC_SCORE
+    };
+
+    /**
+     * Check if scoring is no scoring
+     *
+     * @returns {boolean} True if no scoring
+     */
+    this.isNoScoring = function () {
+      return params.scoringOptionGroup.scoringOption === SCORE_TYPES.NO_SCORE
+    };
+
+    /**
      * Determines if score types are configured to show scores
      *
      * @returns {boolean} True if score should show
      */
     this.shouldShowScore = function () {
-      return params.scoringOptionGroup.scoringOption === SCORE_TYPES.STATIC_SCORE
-        || this.isDynamicScoring();
+      return this.isStaticScoring() || this.isDynamicScoring();
     };
   }
 

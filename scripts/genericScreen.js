@@ -1,3 +1,5 @@
+import { showSummary } from './summaryScreen.js';
+
 H5P.BranchingScenario.GenericScreen = (function () {
 
   /**
@@ -23,6 +25,7 @@ H5P.BranchingScenario.GenericScreen = (function () {
     H5P.EventDispatcher.call(this);
 
     const self = this;
+    self.screenData = screenData;
     self.parent = parent;
     self.isShowing = screenData.isStartScreen;
     self.isFeedbackAvailable = false;
@@ -38,6 +41,7 @@ H5P.BranchingScenario.GenericScreen = (function () {
 
     const contentDiv = document.createElement('div');
     contentDiv.classList.add('h5p-branching-scenario-screen-content');
+    self.contentDiv = contentDiv;
 
     var feedbackText = document.createElement('div');
     feedbackText.classList.add('h5p-feedback-content-content');
@@ -55,6 +59,9 @@ H5P.BranchingScenario.GenericScreen = (function () {
     const navButton = document.createElement('button');
     navButton.classList.add(screenData.isStartScreen ? 'h5p-start-button' : 'h5p-end-button');
     navButton.classList.add('transition');
+
+    // check and show view summary button
+    // showSummary(self, screenData, contentDiv);
 
     navButton.onclick = function () {
       screenData.isStartScreen ? self.parent.trigger('started') : self.parent.trigger('restarted');
@@ -209,6 +216,7 @@ H5P.BranchingScenario.GenericScreen = (function () {
     resultContainer.appendChild(scoreText);
     resultContainer.appendChild(scoreCircle);
     wrapper.appendChild(resultContainer);
+    wrapper.style.display = 'none';
     return wrapper;
   };
 
@@ -307,6 +315,14 @@ H5P.BranchingScenario.GenericScreen = (function () {
         self.screenWrapper.classList.remove('h5p-slide-out');
       }
     });
+  };
+
+  /**
+   * Check and show summary button
+   */
+  GenericScreen.prototype.showSummaryButton = function () {
+    const self = this;
+    showSummary(self, self.screenData, self.contentDiv);
   };
 
   return GenericScreen;

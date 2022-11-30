@@ -509,7 +509,7 @@ H5P.BranchingScenario.LibraryScreen = (function () {
 
     const libraryElement = document.createElement('div');
     libraryElement.classList.add('h5p-branching-scenario-content');
-    this.appendRunnable(libraryElement, library.type, library.contentId);
+    this.appendRunnable(libraryElement, library.type, library.contentId, library);
 
     const libraryMachineName = library.type && library.type.library.split(' ')[0];
 
@@ -606,7 +606,7 @@ H5P.BranchingScenario.LibraryScreen = (function () {
    * @param {number} id Id of the library
    * @return {undefined}
    */
-  LibraryScreen.prototype.appendRunnable = function (container, content, id) {
+  LibraryScreen.prototype.appendRunnable = function (container, content, id, libraryDetails) {
     const self = this;
     const parent = this.parent;
 
@@ -631,6 +631,7 @@ H5P.BranchingScenario.LibraryScreen = (function () {
       true,
       {
         parent: this.parent,
+        previousState: (this.parent.previousState && this.parent.previousState.answers && this.parent.previousState.answers[libraryDetails.contentId]) ? this.parent.previousState.answers[libraryDetails.contentId] : undefined
       }
     );
 
@@ -685,6 +686,13 @@ H5P.BranchingScenario.LibraryScreen = (function () {
 
     // Remove any fullscreen buttons
     this.disableFullscreen(instance);
+
+    instance.metadata = content.metadata;
+
+    const subContents = this.parent.instances.map(element => element.subContentId);
+    if(subContents.indexOf(instance.subContentId) === -1) {
+      this.parent.instances.push(instance);
+    }
   };
 
   /**
@@ -1353,7 +1361,7 @@ H5P.BranchingScenario.LibraryScreen = (function () {
       const branchingQuestion = document.createElement('div');
       branchingQuestion.className = 'h5p-branching-question-wrapper';
 
-      this.appendRunnable(branchingQuestion, library.type, library.contentId);
+      this.appendRunnable(branchingQuestion, library.type, library.contentId, library);
       wrapper.appendChild(branchingQuestion);
       this.branchingQuestions.push(branchingQuestion);
 
